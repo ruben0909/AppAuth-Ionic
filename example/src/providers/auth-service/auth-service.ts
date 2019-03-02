@@ -20,18 +20,19 @@ import { IonicAppBrowserProvider } from './app-auth/ionicAppBrowser';
 import { CodeVerifier } from './app-auth/codeVerifier';
 
 //import { AppTokenResponse } from '../app-auth/AppTokenReponse';
-const OpenIDConnectURL = "https://<URL FOR SERVER>";
-const ClientId = "<CLIENT ID>";
-const ClientSecret = "<SECRET>";
-const RedirectUri = "<CUSTOM URL TYPE>://<CUSTOM URL PATH>";
+const OpenIDConnectURL = "http://localhost:5000/";
+const ClientId = "ionic";
+const ClientSecret = "secret";
+const RedirectUri =  "http://localhost:8100/#/home";//"<CUSTOM URL TYPE>://<CUSTOM URL PATH>";
 const Scopes = "openid offline_access";
 //URL Example: com.my.app://token
-const EndSessionRedirectUri = "<CUSTOM URL TYPE>://<CUSTOM URL PATH";
+const EndSessionRedirectUri = "http://localhost:8100/#/landing";//"<CUSTOM URL TYPE>://<CUSTOM URL PATH";
 //this should be different from redirectURI
 
 //CONST values (magic strings):
 const TOKEN_RESPONSE_KEY = "token_response";
 const AUTH_CODE_KEY = "authorization_code";
+const CODE_VERIFIER = "code_verifier";
 
 const nowInSeconds = () => Math.round(new Date().getTime() / 1000);
 
@@ -179,6 +180,8 @@ export class AuthServiceProvider {
         await this.discoveryTask;
 
         await this.codeVerifier.initialiseValues();
+        await this.storageBackend.setItem(CODE_VERIFIER, this.codeVerifier.verifier);
+
 
         //Redirect and signin to get the Authorization Token
         let request = new AuthorizationRequest(
@@ -204,6 +207,7 @@ export class AuthServiceProvider {
 
         let request: TokenRequest = null;
 
+        ;
         if (this.code) {
             request = new TokenRequest(
                 ClientId,
@@ -213,13 +217,15 @@ export class AuthServiceProvider {
                 undefined,
                 {
                     "client_secret": ClientSecret,
-                    "code_verifier": this.codeVerifier.verifier
+                    "code_verifier": await this.storageBackend.getItem(CODE_VERIFIER)
                 }
             )
 
             let response = await this.tokenHandler.performTokenRequest(this.configuration, request)
 
             await this.saveTokenResponse(response);
+            
+            await this.resetAuthCompletedPromise();
             this.authCompletedResolve();
         }
     }

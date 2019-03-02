@@ -1,16 +1,18 @@
 import { SafariViewController, SafariViewControllerOptions } from '@ionic-native/safari-view-controller';
 import { Injectable } from '@angular/core';
 import { InAppBrowserObject, InAppBrowser, InAppBrowserOptions } from '@ionic-native/in-app-browser';
+import { Platform } from 'ionic-angular';
 
 @Injectable()
 export class IonicAppBrowserProvider {
 
   private inAppLogin: InAppBrowserObject;
 
-    constructor(private inAppBrowser: InAppBrowser, private safariViewController: SafariViewController){ }
+    constructor(private inAppBrowser: InAppBrowser, private safariViewController: SafariViewController,private  platform:Platform){ }
 
     public async ShowWindow(url: string): Promise<any>{
-        if (await this.safariViewController.isAvailable()) {
+      
+        if (this.platform.is('ios') && await this.safariViewController.isAvailable()) {
 
             let optionSafari: SafariViewControllerOptions = {
                 url: url,
@@ -33,9 +35,9 @@ export class IonicAppBrowserProvider {
     }
 
     public async CloseWindow(){
-        if(await this.safariViewController.isAvailable()){
+        if(this.platform.is('ios') && await this.safariViewController.isAvailable()){
             this.safariViewController.hide();             
-        }  else{
+        }  else if(this.inAppBrowser["close"] !== undefined){
             this.inAppLogin.close(); 
         }
     }

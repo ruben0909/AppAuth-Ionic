@@ -26,6 +26,10 @@ export class MyApp {
       (<any>window).handleOpenURL = (url) => {        
         this.authService.AuthorizationCallback(url);        
       };
+      if((location.href.indexOf("code")!== -1) && (location.href.indexOf("scope")!== -1)&& (location.href.indexOf("state")!== -1)&& (location.href.indexOf("session_state")!== -1)){
+        
+        this.authService.AuthorizationCallback(location.href);  
+      }
 
       await this.authService.startupAsync(signin => {
         //Register the callback for when authService has tried handling signin
